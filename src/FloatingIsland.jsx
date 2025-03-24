@@ -1,40 +1,51 @@
-import React, { useRef, useEffect } from "react";
-import { Canvas, useFrame } from "@react-three/fiber";
-import { OrbitControls } from "@react-three/drei";
-import * as THREE from "three";
+import React, { useEffect } from 'react';
+import * as THREE from 'three';
 
 const FloatingIsland = () => {
-  return (
-    <Canvas camera={{ position: [0, 5, 10] }}>
-      <ambientLight intensity={0.5} />
-      <directionalLight position={[5, 5, 5]} intensity={1} />
-      <OrbitControls />
-      <Island />
-    </Canvas>
-  );
-};
+  useEffect(() => {
+    // Scene setup
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+    const renderer = new THREE.WebGLRenderer();
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    document.body.appendChild(renderer.domElement);
 
-const Island = () => {
-  const islandRef = useRef();
+    // Adding a floating island model (simple geometry for now)
+    const geometry = new THREE.CylinderGeometry(5, 5, 1, 32);
+    const material = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
+    const island = new THREE.Mesh(geometry, material);
+    scene.add(island);
 
-  useFrame(() => {
-    if (islandRef.current) {
-      islandRef.current.rotation.y += 0.005;
-    }
-  });
+    camera.position.z = 10;
 
-  return (
-    <group ref={islandRef} position={[0, -1, 0]}>
-      <mesh position={[0, -1, 0]}>
-        <cylinderGeometry args={[3, 6, 2, 32]} />
-        <meshStandardMaterial color="saddlebrown" />
-      </mesh>
-      <mesh position={[0, 1.5, 0]}>
-        <sphereGeometry args={[2, 32, 32]} />
-        <meshStandardMaterial color="green" />
-      </mesh>
-    </group>
-  );
+    // Animation loop
+    const animate = () => {
+      requestAnimationFrame(animate);
+
+      island.rotation.x += 0.01;
+      island.rotation.y += 0.01;
+
+      renderer.render(scene, camera);
+    };
+
+    animate();
+
+    // Resize handling
+    window.addEventListener('resize', () => {
+      const width = window.innerWidth;
+      const height = window.innerHeight;
+
+      renderer.setSize(width, height);
+      camera.aspect = width / height;
+      camera.updateProjectionMatrix();
+    });
+
+    return () => {
+      document.body.removeChild(renderer.domElement);
+    };
+  }, []);
+
+  return null; // FloatingIsland doesn't return any JSX, just 3D scene
 };
 
 export default FloatingIsland;
